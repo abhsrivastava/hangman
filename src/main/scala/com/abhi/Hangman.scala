@@ -8,7 +8,7 @@ object Hangman extends App {
     lazy val Dictionary : List[String] = scala.io.Source.fromResource("words.txt").getLines.toList
     case class State(name: String, guesses: Set[Char] = Set.empty[Char], word: String) {
         final def failures : Int = (guesses -- word.toSet).size
-        final def playerLost: Boolean = failures > 10
+        final def playerLost: Boolean = failures >= 10
         final def playerWon : Boolean = (word.toSet -- guesses).size == 0
     }
     def run(args: List[String]) : IO[Nothing, ExitStatus] = {
