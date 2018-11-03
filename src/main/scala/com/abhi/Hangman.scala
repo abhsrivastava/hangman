@@ -43,23 +43,20 @@ object Hangman extends App {
             guess <- getChoice
             state <- IO.now(state.copy(guesses = state.guesses + guess))
             _ <- renderState(state)
-            loop <- if (state.playerWon) putStrLn(s"Congratulations ${state.name} you won the game!").const(true)
+            loop <- if (state.playerWon) putStrLn(s"Congratulations ${state.name} you won the game!").const(false)
                     else if (state.playerLost) putStrLn(s"Sorry ${state.name} you lost the game. The word was ${state.word}").map(_ => false).const(false)
                     else if (state.word.contains(guess)) putStrLn(s"You guessed correctly!").const(true)
                     else putStrLn(s"That's wrong. but keep trying!").const(true)
             state <- if (loop) gameLoop(state) else IO.now(state)
         } yield state
     }
-    val getChoice : IO[IOException, Char] = {
-        for {
-            _ <- putStrLn(s"Please enter a letter")
-            line <- getStrLn
-            char <- line.toLowerCase.trim.headOption match {
-                case None => putStrLn(s"You did not enter a character") *> getChoice
-                case Some(x) => IO.now(x)
-            }
-        } yield char
-    }
+    val getChoice : IO[IOException, Char] = for {
+        line <- putStrLn(s"Please enter a letter") *> getStrLn
+        char <- line.toLowerCase.trim.headOption match {
+            case None => putStrLn(s"You did not enter a character") *> getChoice
+            case Some(x) => IO.now(x)
+        }
+    } yield char
 
     def renderState(state: State) : IO[IOException, Unit] = {
         val word = state.word.toList.map(c => 
